@@ -1,6 +1,7 @@
 (ns tutorial-client.rendering
   (:require [domina :as dom]
             [io.pedestal.app.render.push :as render]
+            [io.pedestal.app.render.events :as events]
             [io.pedestal.app.render.push.templates :as templates]
             [io.pedestal.app.render.push.handlers :as h]
             [io.pedestal.app.render.push.handlers.automatic :as d])
@@ -18,8 +19,13 @@
   (let [key (last path)]
     (templates/update-t renderer [:main] {key (str new-value)})))
 
+(defn enable-buttons [_ [_ path transform-name messages] input-queue]
+  (condp = transform-name
+    :inc (events/send-on :click "inc-button" input-queue transform-name messages)
+    :dec (events/send-on :click "dec-button" input-queue transform-name messages)))
+
 (defn render-config []
   [[:node-create  [:main] render-template]
    [:node-destroy   [:main] d/default-destroy]
    [:value [:main :*] render-value]
-   [:transform-enable [:main :my-counter] (h/add-send-on-click "inc-button")]])
+   [:transform-enable [:main :my-counter] enable-buttons]])
